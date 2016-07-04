@@ -1,0 +1,185 @@
+//
+//  Calculator.swift
+//  Fast Calculator
+//
+//  Created by Александр Хитёв on 19/03/15.
+//  Copyright (c) 2015 Alexsandr Khitev. All rights reserved.
+//
+
+import UIKit
+
+class Calculator: UIViewController {
+
+    @IBOutlet weak var display: UILabel!
+    
+    var userWriteANumber: Bool = false
+    var decimalEntered: Bool = false
+    
+    @IBAction func digit(sender: UIButton) {
+        let number = sender.currentTitle!
+        if arrayOp.count == 0 {
+            arrayDigit.removeAll()
+        }
+          if userWriteANumber  {
+            display.text = display.text! + number
+        } else {
+            display.text = number
+            userWriteANumber = true
+        }
+    }
+    
+    @IBAction func points(sender: UIButton) {
+        if  userWriteANumber && !decimalEntered {
+            digit(sender)
+            decimalEntered = true
+        }
+    }
+    
+    @IBAction func clear(sender: UIButton) {
+        arrayDigit.removeAll()
+        arrayOp.removeAll()
+        display.text = displayStack()!
+        println("clear all \(arrayDigit)")
+    }
+    
+    @IBAction func clearC(sender: UIButton) {
+        display.text = " "
+        println("clearC \(arrayDigit)")
+    }
+    
+    func displayStack() -> String! {
+        return " ".join(arrayDigit.map{ "  \($0)" })
+    }
+    
+    var arrayDigit = Array<Double>()
+    
+    func equal() {
+        userWriteANumber = false
+        decimalEntered = false
+        arrayDigit.append(displayValue)
+        // попробую сделать что бы после нажатия двух раз операции первая удалялась
+        println("return digit = \(arrayDigit)")
+    }
+    
+    
+    
+    var displayValue: Double! {
+        get {
+            return NSNumberFormatter().numberFromString(display.text!)!.doubleValue
+        }
+        set {
+            display.text = "\(newValue)"
+            userWriteANumber = false
+        }
+    }
+    
+    
+    
+    @IBAction func equalVal(sender: UIButton) {
+         equal()
+        if arrayOp.count > 0 {
+            let x = arrayOp.last!
+            println("equal is \(x)")
+            switch x  {
+            case "×": action { $0 * $1 }
+            case "÷": action { $1 / $0 }
+            case "−": action { $1 - $0 }
+            case "+": action { $0 + $1 }
+            case "√": action { sqrt($0) }
+            case "±": action { -$0 }
+            case "x²": action { $0 * $0 }
+            case "%": action { $0 / 100 }
+            default: break
+            }
+           // arrayDigit.removeAll()
+        }
+        arrayOp.removeAll()
+        println("\(arrayDigit)")
+    }
+    
+    var arrayOp = Array<String>()
+    
+    @IBAction func operand(sender: UIButton) {
+        decimalEntered = false
+        var operation = sender.currentTitle!
+        if userWriteANumber {
+            equal()
+        }
+        if arrayOp.count >= 1  { // делает первое действие
+            operation = arrayOp.first!
+            arrayOp.removeAll()
+            operation = sender.currentTitle!
+            println("op is first \(arrayOp)")
+        }
+        switch operation  {
+        case "×": action { $0 * $1 }
+        case "÷": action { $1 / $0 }
+        case "−": action { $1 - $0 }
+        case "+": action { $0 + $1 }
+        case "√": action { sqrt($0) }
+        case "±": action { -$0 }
+        case "x²": action { $0 * $0 }
+        case "%": action { $0 / 100 }
+        default: break
+        }
+
+        arrayOp.append(operation) // нельзя уберать иначе не будет выполняться операции
+         println("is op\(arrayOp)")
+    }
+    
+    func action(operation: (Double, Double) -> Double) {
+        if arrayDigit.count >= 2 {
+            displayValue = operation(arrayDigit.removeLast(), arrayDigit.removeLast())
+            equal()
+        }
+    }
+    
+    func action(operation: (Double) -> Double?) {
+        if arrayDigit.count >= 1 {
+            displayValue = operation(arrayDigit.removeLast())
+            equal()
+        }
+    }
+    
+    @IBAction func PI() {
+        let pi = M_PI
+        userWriteANumber = true
+        if userWriteANumber {
+            displayValue = pi
+            equal()
+            //arrayDigit.append(pi)
+            println("\(arrayDigit)")
+        }
+    }
+    
+    @IBAction func back(sender: UIButton) {
+        var coutEL = countElements(display.text!)
+        if coutEL >= 1 {
+            var backspace = dropLast(display.text!)
+            display.text = backspace
+        }
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        // Do any additional setup after loading the view.
+    }
+
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        // Dispose of any resources that can be recreated.
+    }
+    
+
+    /*
+    // MARK: - Navigation
+
+    // In a storyboard-based application, you will often want to do a little preparation before navigation
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        // Get the new view controller using segue.destinationViewController.
+        // Pass the selected object to the new view controller.
+    }
+    */
+
+}
